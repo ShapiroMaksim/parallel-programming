@@ -25,7 +25,7 @@ void integral(const double _LeftX, const double _RightX, const double _LeftY,
 				((i+_Step) * j * sin((i+_Step) * j)) +
 				(i * (j+_Step) * sin(i * (j+_Step))) +
 				((i+_Step) * (j+_Step) * sin((i+_Step) * (j+_Step))))
-				/ 4; /*(i * j + (i + _Step) * j + i * (j + _Step) + (i + _Step)*(j + _Step)) / 4;*/
+				/ 4.0; /*(i * j + (i + _Step) * j + i * (j + _Step) + (i + _Step)*(j + _Step)) / 4;*/
 			sum += midval * _Step * _Step;
 		}
 	}
@@ -42,21 +42,26 @@ void main(int argc, char* argv[])
 	double LeftY = 0.0;    
 	double RightY = 10.0; 
 	double Step = 0.001;   
-	double res;
+	double res, Linear_res;
 	double Final_res = 0.0;
 
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD, &procNum);
 	MPI_Comm_rank(MPI_COMM_WORLD, &procRank);
-	double Start_time, End_time;
-	Start_time = MPI_Wtime();
+	double Start_time, End_time, Start_timeL, End_timeL;
+	//Start_time = MPI_Wtime();
 	double* X = NULL;
 
 	if (procRank == 0)
-	{
+	{   ///////////////// À»Õ≈…Õ€… ¿À√Œ–»“Ã
+		Start_timeL = MPI_Wtime();
+		integral(LeftX, RightX, LeftY, RightY, Step, &Linear_res);
+		End_timeL = MPI_Wtime();
+		///////////////// œ¿–¿ÀÀ≈À‹Õ€… ¿À√Œ–»“Ã
+		Start_time = MPI_Wtime();
 		X = new double[2 * procNum];
 		double tmp = (RightX - LeftX) / (double)procNum;
-
+		
 		tmp = round(tmp * 100) / 100;
 		X[0] = LeftX;
 		X[1] = LeftX + tmp;
@@ -75,7 +80,7 @@ void main(int argc, char* argv[])
 	
 	double Segment[2];
 	MPI_Scatter(X, 2, MPI_DOUBLE, Segment, 2, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
+	
 	integral(Segment[0], Segment[1], LeftY, RightY, Step, &res);
 
 	MPI_Reduce(&res, &Final_res, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -83,7 +88,8 @@ void main(int argc, char* argv[])
 	if (procRank == 0)
 	{
 		End_time = MPI_Wtime();
-		cout << "res: " << Final_res << "\ntime: " << End_time-Start_time << "\nproc num: "<< procNum << "\n";	
+		cout << "res: " << Final_res << "\ntime: " << End_time-Start_time << "\nproc num: "<< procNum << "\n";
+		cout << "linear res: " << Linear_res << "\nlinear time: " << End_timeL - Start_timeL << "\n";
 	}
 
 	MPI_Finalize();
