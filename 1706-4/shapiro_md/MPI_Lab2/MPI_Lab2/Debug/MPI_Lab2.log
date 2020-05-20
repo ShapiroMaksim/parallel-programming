@@ -1,3 +1,0 @@
-﻿  Source.cpp
-C:\Users\Maksim\source\repos\MPI_Lab2\MPI_Lab2\Source.cpp(17,35): warning C4326:  return type of 'main' should be 'int' instead of 'void'
-  MPI_Lab2.vcxproj -> C:\Users\Maksim\source\repos\MPI_Lab2\Debug\MPI_Lab2.exe
